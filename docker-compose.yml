@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  api:
+    container_name: eth-account-creator-api
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./resources:/go/bin/resources
+    ports:
+      - "5000:5000"
