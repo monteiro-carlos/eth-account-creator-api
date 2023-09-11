@@ -15,11 +15,11 @@ lint-fix:
 	@golangci-lint run --fix
 
 .PHONY: docker-up
-docker-db:
+docker-up:
 	@docker-compose -f ./docker-compose.yml up
 
 .PHONY: docker-stop
-docker-db-stop:
+docker-stop:
 	@docker-compose -f ./docker-compose.yml stop
 
 .PHONY: generate
@@ -36,4 +36,4 @@ test:
 
 	.PHONY: build
 build: generate
-	@go build -o ./bin/api $(LD_FLAGS) ./cmd/api
+	@go build -o ./bin/api $(LD_FLAGS) ./internal/api
