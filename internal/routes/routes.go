@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	docs "eth-account-creator-api/internal/swagger/docs"
 
@@ -14,6 +15,14 @@ import (
 )
 
 const corsMaxAge = 300
+
+func prometheusHandler() gin.HandlerFunc {
+	h := promhttp.Handler()
+
+	return func(c *gin.Context) {
+		h.ServeHTTP(c.Writer, c.Request)
+	}
+}
 
 func Handler(dep *container.Dependency) {
 	router := gin.Default()
@@ -37,6 +46,8 @@ func Handler(dep *container.Dependency) {
 
 	docs.SwaggerInfo.BasePath = "/"
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	router.GET("/metrics", prometheusHandler())
 
 	err := router.Run(":5000")
 	if err != nil {
