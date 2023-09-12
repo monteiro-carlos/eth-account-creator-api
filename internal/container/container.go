@@ -33,16 +33,8 @@ func New() (*Dependency, error) {
 		return nil, err
 	}
 
-	healthService, err := health.NewService(
-		cmp.Log,
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	srv := Services{
 		Account: accountService,
-		Health:  healthService,
 	}
 
 	dep := Dependency{
