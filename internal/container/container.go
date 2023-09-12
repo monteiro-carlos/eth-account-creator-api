@@ -2,6 +2,7 @@ package container
 
 import (
 	"eth-account-creator-api/core/domains/account"
+	"eth-account-creator-api/core/domains/adapters/queue"
 	"eth-account-creator-api/core/domains/health"
 	"eth-account-creator-api/internal/log"
 )
@@ -26,15 +27,14 @@ func New() (*Dependency, error) {
 		return nil, err
 	}
 
-	accountService, err := account.NewAccountService(
-		cmp.Log,
-	)
+	queueClient, err := queue.NewClient(cmp.Log)
 	if err != nil {
 		return nil, err
 	}
 
-	healthService, err := health.NewService(
+	accountService, err := account.NewAccountService(
 		cmp.Log,
+		queueClient,
 	)
 	if err != nil {
 		return nil, err
@@ -42,7 +42,6 @@ func New() (*Dependency, error) {
 
 	srv := Services{
 		Account: accountService,
-		Health:  healthService,
 	}
 
 	dep := Dependency{

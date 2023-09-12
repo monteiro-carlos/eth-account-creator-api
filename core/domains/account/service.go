@@ -2,7 +2,9 @@ package account
 
 import (
 	"crypto/ecdsa"
+	"encoding/json"
 	"eth-account-creator-api/core/domains/account/models"
+	"eth-account-creator-api/core/domains/adapters/queue"
 	"eth-account-creator-api/internal/log"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -13,15 +15,18 @@ import (
 type ServiceI interface {
 	CreateAddress() (models.Account, error)
 	FetchAddressFromPubKey(publicKeyStr string) (models.Address, error)
+	SendTransaction(transaction models.Transaction) error
 }
 
 type Account struct {
-	log *log.Logger
+	log         *log.Logger
+	queueClient *queue.Client
 }
 
-func NewAccountService(logger *log.Logger) (*Account, error) {
+func NewAccountService(logger *log.Logger, queueClient *queue.Client) (*Account, error) {
 	return &Account{
-		log: logger,
+		log:         logger,
+		queueClient: queueClient,
 	}, nil
 }
 
@@ -71,4 +76,21 @@ func (a *Account) FetchAddressFromPubKey(publicKeyStr string) (models.Address, e
 	address.Address = addressStr
 
 	return address, nil
+}
+
+func (a *Account) SendTransaction(transaction models.Transaction) error {
+	var transactionMap map[string]interface{}
+	data, err := json.Marshal(transaction)
+	if err != nil {
+		a.log.Zap.Fatal("error", zap.Error(err))
+		return err
+	}
+	json.Unmarshal(data, &transactionMap)
+
+	if err := a.queueClient.SendMessage(transactionMap); err != nil {
+		a.log.Zap.Fatal("Error", zap.Error(err))
+
+	}
+
+	return err
 }

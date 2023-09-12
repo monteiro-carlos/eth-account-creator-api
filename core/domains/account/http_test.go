@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"eth-account-creator-api/core/domains/account"
 	"eth-account-creator-api/core/domains/account/models"
+	"eth-account-creator-api/core/domains/adapters/queue"
 	"eth-account-creator-api/internal/log"
 	"net/http"
 	"net/http/httptest"
@@ -28,22 +29,27 @@ func routesSetup() *gin.Engine {
 	return routes
 }
 
-func setupHttp() (*account.Handler, *gin.Engine, error) {
+func setupHttp() (*account.Handler, *queue.Client, *gin.Engine, error) {
 	logger, err := log.NewLogger()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
-	service, err := account.NewAccountService(logger)
+	client, err := queue.NewClient(logger)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
+	}
+
+	service, err := account.NewAccountService(logger, client)
+	if err != nil {
+		return nil, nil, nil, err
 	}
 
 	handler := account.NewHandler(service, logger)
 
 	routes := routesSetup()
 
-	return handler, routes, nil
+	return handler, client, routes, nil
 }
 
 func TestCreateNewAccount(t *testing.T) {
@@ -59,7 +65,7 @@ func TestCreateNewAccount(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			hdr, router, err := setupHttp()
+			hdr, _, router, err := setupHttp()
 			if err != nil {
 				assert.FailNow(t, err.Error())
 			}
@@ -102,7 +108,7 @@ func TestGetAccountFromPubKey(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			hdr, router, err := setupHttp()
+			hdr, _, router, err := setupHttp()
 			if err != nil {
 				assert.FailNow(t, err.Error())
 			}

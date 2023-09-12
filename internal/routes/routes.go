@@ -42,6 +42,7 @@ func Handler(dep *container.Dependency) {
 	{
 		g.GET("/create", accountHandler.CreateNewAccount)
 		g.GET("/:publicKey", accountHandler.GetAccountFromPubKey)
+		g.POST("/transaction", accountHandler.MakeTransaction)
 	}
 
 	docs.SwaggerInfo.BasePath = "/"

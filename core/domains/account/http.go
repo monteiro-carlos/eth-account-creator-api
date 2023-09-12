@@ -62,3 +62,30 @@ func (h *Handler) GetAccountFromPubKey(c *gin.Context) {
 	h.log.Zap.Info("GetAccountFromPubKey - Account fetched successfuly")
 	c.JSON(http.StatusOK, address)
 }
+
+// MakeTransaction godoc
+// @Summary Make a transaction
+// @Description Transfer ETH between accounts
+// @Tags Account
+// @Accept json
+// @Produce json
+// @Param Transaction body models.Transaction true "Transaction Model"
+// @Success 200 {object} string
+// @Failure 404 {object} models.ErrorResponse
+// @Router /account/transaction [post].
+func (h *Handler) MakeTransaction(c *gin.Context) {
+	var transactionPayload models.Transaction
+	if err := c.ShouldBindJSON(&transactionPayload); err != nil {
+		h.log.Zap.Error("error", zap.Error(err))
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+	if err := h.Service.SendTransaction(transactionPayload); err != nil {
+		h.log.Zap.Error("error", zap.Error(err))
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+	c.JSON(http.StatusOK, "Transaction Sended")
+}
